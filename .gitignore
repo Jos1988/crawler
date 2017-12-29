@@ -6,3 +6,5 @@
 /vendor/
 ###< symfony/framework-bundle ###
 .idea
+.vagrant
+Vagrantfile
