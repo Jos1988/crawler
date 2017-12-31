@@ -3,6 +3,7 @@
 namespace App\Entity;
 
 use ApiPlatform\Core\Annotation\ApiResource;
+use DateTime;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\ORM\Mapping as ORM;
 
@@ -10,7 +11,7 @@ use Doctrine\ORM\Mapping as ORM;
  * Website
  *
  * @ApiResource
- * @ORM\Entity(repositoryClass="App\Repository\WebsiteRepository")
+ * @ORM\Entity()
  */
 class Website
 {
@@ -33,12 +34,12 @@ class Website
     /**
      * @var string
      *
-     * @ORM\Column(name="domain", type="string", length=255, unique=true)
+     * @ORM\Column(name="url", type="string", length=255, unique=true)
      */
-    private $domain;
+    private $url;
 
     /**
-     * @var \DateTime
+     * @var DateTime
      *
      * @ORM\Column(name="lastCrawled", type="datetime", nullable=true)
      */
@@ -59,11 +60,19 @@ class Website
     private $crawlLinks;
 
     /**
+     * Website constructor.
+     */
+    public function __construct()
+    {
+        $this->crawlLinks = new ArrayCollection();
+    }
+
+    /**
      * Get id
      *
      * @return int
      */
-    public function getId()
+    public function getId(): int
     {
         return $this->id;
     }
@@ -87,39 +96,39 @@ class Website
      *
      * @return string
      */
-    public function getName()
+    public function getName(): string
     {
         return $this->name;
     }
 
     /**
-     * Set domain
+     * Set url
      *
-     * @param string $domain
+     * @param string $url
      *
      * @return Website
      */
-    public function setDomain($domain)
+    public function setUrl($url)
     {
-        $this->domain = $domain;
+        $this->url = $url;
 
         return $this;
     }
 
     /**
-     * Get domain
+     * Get url
      *
      * @return string
      */
-    public function getDomain()
+    public function getUrl(): string
     {
-        return $this->domain;
+        return $this->url;
     }
 
     /**
      * Set lastCrawled
      *
-     * @param \DateTime $lastCrawled
+     * @param DateTime $lastCrawled
      *
      * @return Website
      */
@@ -133,7 +142,7 @@ class Website
     /**
      * Get lastCrawled
      *
-     * @return \DateTime
+     * @return DateTime
      */
     public function getLastCrawled()
     {
@@ -192,24 +201,32 @@ class Website
      * Add new CrawlLink.
      *
      * @param CrawlLink $crawlLink
+     *
+     * @return Website
      */
     public function addCrawlLink(CrawlLink $crawlLink)
     {
         if (false === $this->crawlLinks->contains($crawlLink)) {
             $this->crawlLinks->add($crawlLink);
         }
+
+        return $this;
     }
 
     /**
      * Remove CrawlLink.
      *
      * @param CrawlLink $crawlLink
+     *
+     * @return Website
      */
     public function removeCrawlLink(CrawlLink $crawlLink)
     {
         if ($this->crawlLinks->contains($crawlLink)) {
             $this->crawlLinks->remove($crawlLink);
         }
+
+        return $this;
     }
 }
 

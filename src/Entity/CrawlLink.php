@@ -3,6 +3,7 @@
 namespace App\Entity;
 
 use Doctrine\ORM\Mapping as ORM;
+use \DateTime;
 
 /**
  * CrawlLink
@@ -66,7 +67,7 @@ class CrawlLink
      *
      * @return CrawlLink
      */
-    public function setLink($link)
+    public function setLink(string $link)
     {
         $this->link = $link;
 
@@ -78,7 +79,7 @@ class CrawlLink
      *
      * @return string
      */
-    public function getLink()
+    public function getLink(): string
     {
         return $this->link;
     }
@@ -88,9 +89,9 @@ class CrawlLink
      *
      * @return string
      */
-    public function getAbsoluteLink()
+    public function getAbsoluteLink(): string
     {
-        return ltrim($this->website->getDomain(), '/') . $this->getLink();
+        return ltrim($this->website->getUrl(), '/') . $this->getLink();
     }
 
     /**
@@ -100,7 +101,7 @@ class CrawlLink
      *
      * @return CrawlLink
      */
-    public function setCrawled($crawled)
+    public function setCrawled(bool $crawled)
     {
         $this->crawled = $crawled;
 
@@ -112,7 +113,7 @@ class CrawlLink
      *
      * @return bool
      */
-    public function isCrawled()
+    public function isCrawled(): bool
     {
         return $this->crawled;
     }
@@ -120,11 +121,11 @@ class CrawlLink
     /**
      * Set crawlDate
      *
-     * @param \DateTime $crawlDate
+     * @param DateTime $crawlDate
      *
      * @return CrawlLink
      */
-    public function setCrawlDate($crawlDate)
+    public function setCrawlDate(DateTime $crawlDate)
     {
         $this->crawlDate = $crawlDate;
 
@@ -134,9 +135,9 @@ class CrawlLink
     /**
      * Get crawlDate
      *
-     * @return \DateTime
+     * @return DateTime
      */
-    public function getCrawlDate()
+    public function getCrawlDate(): DateTime
     {
         return $this->crawlDate;
     }
@@ -165,4 +166,3 @@ class CrawlLink
         return $this;
     }
 }
-
