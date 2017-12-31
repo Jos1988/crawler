@@ -59,6 +59,12 @@ class Article
      */
     private $date;
 
+    /**
+     * @var Website
+     *
+     * @ORM\ManyToOne(targetEntity="Website", inversedBy="crawlLinks")
+     */
+    private $website;
 
     /**
      * Get id
@@ -188,6 +194,30 @@ class Article
     public function getDate(): DateTime
     {
         return $this->date;
+    }
+
+    /**
+     * get Website
+     *
+     * @return Website
+     */
+    public function getWebsite(): Website
+    {
+        return $this->website;
+    }
+
+    /**
+     * set Website
+     *
+     * @param Website $website
+     *
+     * @return Article
+     */
+    public function setWebsite(Website $website)
+    {
+        $this->website = $website;
+
+        return $this;
     }
 }
 

@@ -3,6 +3,7 @@
 namespace App\Entity;
 
 use ApiPlatform\Core\Annotation\ApiResource;
+use App\Entity\RssFeed;
 use DateTime;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\ORM\Mapping as ORM;
@@ -60,11 +61,33 @@ class Website
     private $crawlLinks;
 
     /**
+     * @var ArrayCollection|Article[]
+     *
+     * @ORM\OneToMany(targetEntity="Article", mappedBy="website")
+     */
+    private $articles;
+
+    /**
+     * @var ArrayCollection|RssFeed[]
+     *
+     * @ORM\OneToMany(targetEntity="RssFeed", mappedBy="website")
+     */
+    private $rssFeeds;
+
+    /**
+     * @var ArrayCollection[]|Area[]
+     *
+     * @ORM\ManyToMany(targetEntity="App\Entity\Area", mappedBy="websites")
+     */
+    private $areas;
+
+    /**
      * Website constructor.
      */
     public function __construct()
     {
         $this->crawlLinks = new ArrayCollection();
+        $this->areas = new ArrayCollection();
     }
 
     /**
@@ -84,7 +107,7 @@ class Website
      *
      * @return Website
      */
-    public function setName($name)
+    public function setName(string $name)
     {
         $this->name = $name;
 
@@ -108,7 +131,7 @@ class Website
      *
      * @return Website
      */
-    public function setUrl($url)
+    public function setUrl(string $url)
     {
         $this->url = $url;
 
@@ -132,7 +155,7 @@ class Website
      *
      * @return Website
      */
-    public function setLastCrawled($lastCrawled)
+    public function setLastCrawled(DateTime $lastCrawled)
     {
         $this->lastCrawled = $lastCrawled;
 
@@ -144,7 +167,7 @@ class Website
      *
      * @return DateTime
      */
-    public function getLastCrawled()
+    public function getLastCrawled(): DateTime
     {
         return $this->lastCrawled;
     }
@@ -156,7 +179,7 @@ class Website
      *
      * @return Website
      */
-    public function setNoCrawl($noCrawl)
+    public function setNoCrawl(bool $noCrawl)
     {
         $this->noCrawl = $noCrawl;
 
@@ -168,7 +191,7 @@ class Website
      *
      * @return bool
      */
-    public function getNoCrawl()
+    public function getNoCrawl(): bool
     {
         return $this->noCrawl;
     }
@@ -178,7 +201,7 @@ class Website
      *
      * @return ArrayCollection|CrawlLink[]
      */
-    public function getCrawlLinks()
+    public function getCrawlLinks(): array
     {
         return $this->crawlLinks;
     }
@@ -228,5 +251,174 @@ class Website
 
         return $this;
     }
+
+    /**
+     * get Articles
+     *
+     * @return ArrayCollection|Article[]
+     */
+    public function getArticles(): array
+    {
+        return $this->articles;
+    }
+
+    /**
+     * set CrawlLinks
+     *
+     * @param ArrayCollection|CrawlLink[] $articles
+     *
+     * @return Website
+     */
+    public function setArticles(ArrayCollection $articles)
+    {
+        $this->crawlLinks = $articles;
+
+        return $this;
+    }
+
+    /**
+     * Add new Article.
+     *
+     * @param Article $article
+     *
+     * @return Website
+     */
+    public function addArticle(Article $article)
+    {
+        if (false === $this->articles->contains($article)) {
+            $this->articles->add($article);
+        }
+
+        return $this;
+    }
+
+    /**
+     * Remove CrawlLink.
+     *
+     * @param Article $article
+     *
+     * @return Website
+     */
+    public function removeArticle(Article $article)
+    {
+        if ($this->articles->contains($article)) {
+            $this->articles->remove($article);
+        }
+
+        return $this;
+    }
+
+    /**
+     * get Articles
+     *
+     * @return ArrayCollection|RssFeed[]
+     */
+    public function getRssFeeds(): array
+    {
+        return $this->rssFeeds;
+    }
+
+    /**
+     * set CrawlLinks
+     *
+     * @param ArrayCollection|RssFeed[] $feeds
+     *
+     * @return Website
+     */
+    public function setRssFeeds(ArrayCollection $feeds)
+    {
+        $this->rssFeeds = $feeds;
+
+        return $this;
+    }
+
+    /**
+     * Add new RssFeed.
+     *
+     * @param RssFeed $feed
+     *
+     * @return Website
+     */
+    public function addRssFeed(RssFeed $feed)
+    {
+        if (false === $this->rssFeeds->contains($feed)) {
+            $this->rssFeeds->add($feed);
+        }
+
+        return $this;
+    }
+
+    /**
+     * Remove RssFeed.
+     *
+     * @param RssFeed $feed
+     *
+     * @return Website
+     */
+    public function removeRssFeed(RssFeed $feed)
+    {
+        if ($this->rssFeeds->contains($feed)) {
+            $this->rssFeeds->remove($feed);
+        }
+
+        return $this;
+    }
+
+    /**
+     * get Areas
+     *
+     * @return Area[]|ArrayCollection[]
+     */
+    public function getAreas()
+    {
+        return $this->areas;
+    }
+
+    /**
+     * set Areas
+     *
+     * @param Area[]|ArrayCollection[] $areas
+     *
+     * @return Website
+     */
+    public function setAreas($areas)
+    {
+        $this->areas = $areas;
+
+        return $this;
+    }
+
+    /**
+     * Add new RssFeed.
+     *
+     * @param Area $area
+     *
+     * @return Website
+     */
+    public function addArea(Area $area)
+    {
+        if (false === $this->areas->contains($area)) {
+            $this->areas->add($area);
+        }
+
+        return $this;
+    }
+
+    /**
+     * Remove RssFeed.
+     *
+     * @param Area $area
+     *
+     * @return Website
+     */
+    public function removeArea(Area $area)
+    {
+        if ($this->areas->contains($area)) {
+            $this->areas->remove($area);
+        }
+
+        return $this;
+    }
+
 }
 

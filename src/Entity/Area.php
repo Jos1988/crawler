@@ -15,11 +15,6 @@ use Doctrine\ORM\Mapping as ORM;
 class Area
 {
 
-    public function __construct()
-    {
-        $this->childAreas = new ArrayCollection();
-    }
-
     /**
      * @var int
      *
@@ -56,6 +51,20 @@ class Area
      * @ORM\OneToMany(targetEntity="Area", mappedBy="parentArea")
      */
     private $childAreas;
+
+    /**
+     * @var Website[]
+     *
+     * @ORM\ManyToMany(targetEntity="Website", inversedBy="areas")
+     */
+    private $websites;
+
+
+    public function __construct()
+    {
+        $this->childAreas = new ArrayCollection();
+        $this->websites = new ArrayCollection();
+    }
 
     /**
      * get Id
@@ -185,4 +194,59 @@ class Area
         return $this;
     }
 
+    /**
+     * get Websites
+     *
+     * @return Website[]
+     */
+    public function getWebsites(): array
+    {
+        return $this->websites;
+    }
+
+    /**
+     * set Websites
+     *
+     * @param Website[] $websites
+     *
+     * @return Area
+     */
+    public function setWebsites(array $websites)
+    {
+        $this->websites = $websites;
+
+        return $this;
+    }
+
+    /**
+     * Add Website.
+     *
+     * @param Website $website
+     *
+     * @return Area
+     */
+    public function addWebsite(Website $website)
+    {
+        if (false === $this->websites->contains($website)) {
+            $this->websites->add($website);
+        }
+
+        return $this;
+    }
+
+    /**
+     * Remove Website.
+     *
+     * @param Website $website
+     *
+     * @return Area
+     */
+    public function removeWebsite(Website $website)
+    {
+        if ($this->websites->contains($website)) {
+            $this->websites->remove($website);
+        }
+
+        return $this;
+    }
 }

@@ -1,6 +1,6 @@
 <?php
 
-namespace AppBundle\Entity;
+namespace App\Entity;
 
 use ApiPlatform\Core\Annotation\ApiResource;
 use DateTime;
@@ -37,6 +37,13 @@ class RssFeed
      * @ORM\Column(name="lastCall", type="datetime", nullable=true)
      */
     private $lastCall;
+
+    /**
+     * @var Website
+     *
+     * @ORM\ManyToOne(targetEntity="Website", inversedBy="crawlLinks")
+     */
+    private $website;
 
 
     /**
@@ -95,5 +102,29 @@ class RssFeed
     public function getLastCall(): ?DateTime
     {
         return $this->lastCall;
+    }
+
+    /**
+     * get Website
+     *
+     * @return Website
+     */
+    public function getWebsite(): Website
+    {
+        return $this->website;
+    }
+
+    /**
+     * set Website
+     *
+     * @param Website $website
+     *
+     * @return RssFeed
+     */
+    public function setWebsite(Website $website)
+    {
+        $this->website = $website;
+
+        return $this;
     }
 }
