@@ -150,11 +150,11 @@ class Website
     /**
      * Set lastCrawled
      *
-     * @param DateTime $lastCrawled
+     * @param DateTime|null $lastCrawled
      *
      * @return Website
      */
-    public function setLastCrawled(DateTime $lastCrawled)
+    public function setLastCrawled(DateTime $lastCrawled = null)
     {
         $this->lastCrawled = $lastCrawled;
 

@@ -7,6 +7,7 @@ use Doctrine\ORM\EntityManager;
 use App\Entity\CrawlLink;
 use App\Entity\Website;
 use App\Repository\CrawlLinkRepository;
+use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Console\Style\SymfonyStyle;
 use Symfony\Component\DomCrawler\Crawler;
 
@@ -22,10 +23,10 @@ class SpiderService
      */
     private $crawlLinkRepo;
 
-    public function __construct(EntityManager $entityManager, CrawlLinkRepository $crawlLinkRepository)
+    public function __construct(EntityManagerInterface $entityManager)
     {
         $this->entityManager = $entityManager;
-        $this->crawlLinkRepo = $crawlLinkRepository;
+        $this->crawlLinkRepo = $this->entityManager->getRepository(CrawlLink::class);
     }
 
     /**
