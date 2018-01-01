@@ -15,6 +15,7 @@
     },
     "require-dev": {
         "symfony/dotenv": "^4.0",
+        "symfony/maker-bundle": "^1.0",
         "symfony/thanks": "^1.0"
     },
     "config": {
