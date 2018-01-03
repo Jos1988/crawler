@@ -5,6 +5,7 @@ namespace App\Entity;
 use ApiPlatform\Core\Annotation\ApiResource;
 use DateTime;
 use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 
 /**
@@ -200,7 +201,7 @@ class Website
      *
      * @return ArrayCollection|CrawlLink[]
      */
-    public function getCrawlLinks(): array
+    public function getCrawlLinks(): Collection
     {
         return $this->crawlLinks;
     }

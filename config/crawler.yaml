@@ -1,0 +1,12 @@
+crawler:
+  websites:
+    -
+      ignorePageUrlsWith:
+        - archive
+        - test
+      name: "IJssel en Lekstreek (Capelle)"
+    -
+      ignorePageUrlsWith:
+        - archive
+        - test
+      name: "test"

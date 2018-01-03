@@ -52,9 +52,9 @@ class SpiderService
      *
      * @return int
      */
-    public function crawlSite(Website $website, SymfonyStyle $writer = null)
+    public function crawlSite(Website $website, SymfonyStyle $writer = null, array $config = null)
     {
-        $spider = new Spider($website->getDomain());
+        $spider = new Spider($website->getUrl());
         $spider->crawl();
         $urls = $spider->getUniqueLinks();
         $oldLinks = $website->getCrawlLinks();

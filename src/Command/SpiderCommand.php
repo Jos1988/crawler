@@ -2,14 +2,16 @@
 
 namespace App\Command;
 
+use App\Config\CrawlerConfiguration;
 use App\Entity\Website;
 use App\Service\SpiderService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Command\ContainerAwareCommand;
+use Symfony\Component\Config\Definition\Processor;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Style\SymfonyStyle;
-use Symfony\Component\VarDumper\Cloner\VarCloner;
+use Symfony\Component\Yaml\Yaml;
 
 class SpiderCommand extends ContainerAwareCommand
 {
@@ -52,10 +54,9 @@ class SpiderCommand extends ContainerAwareCommand
      */
     protected function execute(InputInterface $input, OutputInterface $output)
     {
+        $config = $this->validateConfig();
+
         $newLinks = 0;
-//        $container = $this->getContainer();
-//        $spiderService = $container->get(SpiderService::class);
-//         = $container->get(WebsiteRepository::class);
         $websiteRepo = $this->em->getRepository(Website::class);
 
         $writer = new SymfonyStyle($input, $output);
@@ -70,9 +71,34 @@ class SpiderCommand extends ContainerAwareCommand
         $websites = $websiteRepo->findAll();
         /** @var Website $website */
         foreach ($websites as $website) {
-            $newLinks += $this->spiderService->crawlSite($website, $writer);
+
+            $websiteConfig = null;
+            foreach ($config['websites'] as $websiteConfigInstance) {
+                if ($website->getName() === $websiteConfigInstance['name']) {
+                    $websiteConfig = $websiteConfigInstance;
+                }
+            }
+
+            $newLinks += $this->spiderService->crawlSite($website, $writer, $websiteConfig);
         }
 
-        $writer->success('Added '. $newLinks .' new crawl links');
+        $writer->success('Added '.$newLinks.' new crawl links');
+    }
+
+    /**
+     * validate crawler configuration.
+     *
+     * @return array
+     */
+    private function validateConfig()
+    {
+        $config = Yaml::parse(
+            file_get_contents(__DIR__.'/../../config/crawler.yaml')
+        );
+
+        $processor = new Processor();
+        $configurator = new CrawlerConfiguration();
+
+        return $processor->processConfiguration($configurator, $config);
     }
 }
