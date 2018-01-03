@@ -1,0 +1,8 @@
+App\Entity\Area:
+    Area_0:
+        name: Rotterdam Rijnmond
+    Area_1:
+        name: Capelle aan den IJssel
+        parent_area: '@Area_0'
+        websites: [ '@Website_0' ]
+

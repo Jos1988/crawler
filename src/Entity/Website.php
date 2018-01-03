@@ -43,14 +43,14 @@ class Website
      *
      * @ORM\Column(name="lastCrawled", type="datetime", nullable=true)
      */
-    private $lastCrawled;
+    private $lastCrawled = null;
 
     /**
      * @var bool
      *
-     * @ORM\Column(name="noCrawl", type="boolean")
+     * @ORM\Column(name="crawl", type="boolean")
      */
-    private $noCrawl;
+    private $crawl = true;
 
     /**
      * @var ArrayCollection|CrawlLink[]
@@ -172,27 +172,27 @@ class Website
     }
 
     /**
-     * Set noCrawl
-     *
-     * @param boolean $noCrawl
-     *
-     * @return Website
-     */
-    public function setNoCrawl(bool $noCrawl)
-    {
-        $this->noCrawl = $noCrawl;
-
-        return $this;
-    }
-
-    /**
-     * Get noCrawl
+     * is Crawl
      *
      * @return bool
      */
-    public function getNoCrawl(): bool
+    public function isCrawl(): bool
     {
-        return $this->noCrawl;
+        return $this->crawl;
+    }
+
+    /**
+     * set Crawl
+     *
+     * @param bool $crawl
+     *
+     * @return Website
+     */
+    public function setCrawl(bool $crawl)
+    {
+        $this->crawl = $crawl;
+
+        return $this;
     }
 
     /**

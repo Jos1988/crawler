@@ -1,0 +1,5 @@
+App\Entity\Website:
+    Website_0:
+        name: IJssel en Lekstreek (Capelle)
+        url: https://capelle.ijsselenlekstreek.nl/
+        areas: [ '@Area_1' ]

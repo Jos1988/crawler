@@ -53,7 +53,7 @@ class Area
     private $childAreas;
 
     /**
-     * @var Website[]
+     * @var ArrayCollection|Area[]
      *
      * @ORM\ManyToMany(targetEntity="Website", inversedBy="areas")
      */
@@ -197,9 +197,9 @@ class Area
     /**
      * get Websites
      *
-     * @return Website[]
+     * @return  ArrayCollection|Website[]
      */
-    public function getWebsites(): array
+    public function getWebsites(): ArrayCollection
     {
         return $this->websites;
     }
@@ -207,11 +207,11 @@ class Area
     /**
      * set Websites
      *
-     * @param Website[] $websites
+     * @param  ArrayCollection|Website[] $websites
      *
      * @return Area
      */
-    public function setWebsites(array $websites)
+    public function setWebsites(ArrayCollection $websites)
     {
         $this->websites = $websites;
 
