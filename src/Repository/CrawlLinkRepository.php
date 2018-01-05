@@ -15,7 +15,7 @@ use App\Entity\CrawlLink;
 class CrawlLinkRepository extends EntityRepository
 {
     /**
-     * Check if link is already in database.
+     * Get all url's from a websites CrawlLinks and return in an array.
      *
      * @param Website $website
      *
@@ -23,10 +23,19 @@ class CrawlLinkRepository extends EntityRepository
      */
     public function getAllUrls(Website $website)
     {
-        return $this->createQueryBuilder('l')
+        $roughResults = $this->createQueryBuilder('l')
             ->select('l.link')
+            ->where('l.website = :website')
+            ->setParameter('website', $website)
             ->getQuery()
             ->getResult();
+
+        $result = [];
+        foreach ($roughResults as $roughResult) {
+            $result[] = $roughResult['link'];
+        }
+
+        return $result;
     }
 
     /**

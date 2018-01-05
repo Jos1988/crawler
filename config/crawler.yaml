@@ -2,8 +2,7 @@ crawler:
   websites:
     -
       ignorePageUrlsWith:
-        - archive
-        - test
+        - error
       name: "IJssel en Lekstreek (Capelle)"
     -
       ignorePageUrlsWith:

@@ -2,11 +2,11 @@
 
 namespace App\Service;
 
-use DateTime;
-use Doctrine\ORM\EntityManager;
 use App\Entity\CrawlLink;
 use App\Entity\Website;
 use App\Repository\CrawlLinkRepository;
+use DateTime;
+use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Console\Style\SymfonyStyle;
 use Symfony\Component\DomCrawler\Crawler;
@@ -22,6 +22,11 @@ class SpiderService
      * @var CrawlLinkRepository
      */
     private $crawlLinkRepo;
+
+    /**
+     * @var array
+     */
+    private $config;
 
     public function __construct(EntityManagerInterface $entityManager)
     {
@@ -49,6 +54,7 @@ class SpiderService
      *
      * @param Website           $website
      * @param SymfonyStyle|null $writer
+     * @param array|null        $config
      *
      * @return int
      */
@@ -59,6 +65,8 @@ class SpiderService
         $urls = $spider->getUniqueLinks();
         $oldLinks = $website->getCrawlLinks();
         $links = [];
+
+        $this->config = $config;
 
         if (null !== $writer) {
             $writer->success('starting Crawl');
@@ -95,14 +103,14 @@ class SpiderService
     {
         $newLinkNr = 0;
         $run = true;
-        $allUrlsInDb = $this->crawlLinkRepo->getAllUrls($website);
+        $allLinks = $this->crawlLinkRepo->getAllUrls($website);
 
         //run until there are no more uncrawled links.
         while ($run) {
             $links = $this->crawlLinkRepo->getUnCrawledLinks($website);
             if (null !== $writer) {
                 $writer->comment(
-                    'Crawling '.count($links).' new links out of a total of '.count($allUrlsInDb).' links .'
+                    'Crawling '.count($links).' new links out of a total of '.count($allLinks).' links .'
                 );
             }
 
@@ -112,7 +120,9 @@ class SpiderService
             foreach ($links as $link) {
                 //go through the link set again.
                 $run = true;
-                $newLinks = array_merge($newLinks, $this->deepCrawl($link, $spider, $website, $allUrlsInDb, $writer));
+                //Gather all known urls.
+                $newLinks = array_merge($newLinks, $this->deepCrawl($link, $spider, $website, $allLinks, $writer));
+                $allLinks = array_merge($this->getUrlsFromCrawlLinks($newLinks), $allLinks);
             }
 
             $this->saveNewLinks(array_merge($links, $newLinks), $website);
@@ -127,7 +137,7 @@ class SpiderService
      * @param CrawlLink         $link
      * @param Spider            $spider
      * @param Website           $website
-     * @param array             $allUrlsInDb
+     * @param array             $allLinks
      * @param SymfonyStyle|null $writer
      *
      * @return array
@@ -136,7 +146,7 @@ class SpiderService
         CrawlLink $link,
         Spider $spider,
         Website $website,
-        array $allUrlsInDb,
+        array $allLinks,
         SymfonyStyle $writer = null
     ) {
         //Set link as crawled.
@@ -152,14 +162,18 @@ class SpiderService
             //get resulting url's.
             $urls = $spider->getUniqueLinks();
             foreach ($urls as $url) {
-                //If there not in the current set of links.
-                if ($this->checkUrl($url) && in_array($url, $allUrlsInDb)) {
+                //If the're not in the current set of links.
+                if ($this->checkUrl($url) && false === in_array($url, $allLinks)) {
                     //Add Url to set of links.
                     if (null !== $writer) {
                         $writer->comment('Adding new URL: '.$url);
                     }
+
                     $newLink = $this->createCrawlLink($website, $url);
                     $newLinks[] = $newLink;
+
+                    //Save new url as known url.
+                    $allLinks[] = $url;
                 }
             }
 
@@ -167,6 +181,23 @@ class SpiderService
         }
 
         $writer->error('curl error crawling: '.$result);
+    }
+
+    /**
+     * Get array of urls from array of CrawlLinks.
+     *
+     * @param array|CrawlLink[] $crawlLinks
+     *
+     * @return array
+     */
+    public function getUrlsFromCrawlLinks(array $crawlLinks)
+    {
+        $result = [];
+        foreach ($crawlLinks as $crawlLink) {
+            $result[] = $crawlLink->getLink();
+        }
+
+        return $result;
     }
 
     /**
@@ -200,6 +231,15 @@ class SpiderService
     public function checkUrl(
         $url
     ) {
+        if (null !== $this->config) {
+            $ignoreList = $this->config['ignorePageUrlsWith'];
+            foreach ($ignoreList as $ignoreString) {
+                if (false !== strpos($url, $ignoreString)) {
+                    return false;
+                }
+            }
+        }
+
         if (
             strlen($url) > 2 &&    //Check if link is not empty of '/'
             '/' === $url[0]        //Check link is relative.
@@ -216,7 +256,6 @@ class SpiderService
      * @param CrawlLink[] $links
      * @param Website     $website
      *
-     * @return int
      */
     public function saveNewLinks(
         array $links,
