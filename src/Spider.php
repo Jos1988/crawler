@@ -2,6 +2,9 @@
 
 namespace App\Service;
 
+use App\Entity\CrawlLink;
+use App\Entity\Website;
+use App\Exceptions\CrawlException;
 use DOMElement;
 use Symfony\Component\DomCrawler\Crawler;
 
@@ -11,44 +14,38 @@ use Symfony\Component\DomCrawler\Crawler;
 class Spider
 {
     /**
-     * @var int
-     *
+     * @var CrawlLink
      */
-    private $id;
-
-    /**
-     * @var string
-     */
-    private $target;
+    private $crawlLink;
 
     /**
      * @var Crawler
      */
     private $crawler;
 
-    public function __construct(string $target)
+    public function __construct(CrawlLink $crawlLink)
     {
-        $this->target = $target;
+        $this->crawlLink = $crawlLink;
     }
 
     /**
      * Crawl a web page, and store crawler.
      *
-     * @param string|null $target
-     *
-     * @return string|Crawler
+     * @return Crawler
      */
-    public function crawl(string $target = null)
+    public function crawl(): Crawler
     {
-        if (null === $target) {
-            $target = $this->target;
+        if (null === $this->crawlLink) {
+           throw new CrawlException('Crawl link not set on Spider');
         }
 
-        $curlHandler = curl_init($target);
+        $curlHandler = curl_init($this->crawlLink->getAbsoluteLink());
         curl_setopt($curlHandler, CURLOPT_RETURNTRANSFER, 1);
+        curl_setopt($curlHandler, CURLOPT_FOLLOWLOCATION, true);
         $curlReturn = curl_exec($curlHandler);
         if (false === $curlReturn) {
-            return curl_error($curlHandler);
+            $errorMessage = sprintf('Curl returned error message: %s', curl_error($curlHandler));
+            throw new CrawlException($errorMessage, 500);
         }
 
         $this->crawler = new Crawler($curlReturn);
@@ -61,32 +58,40 @@ class Spider
      *
      * @return array
      */
-    public function getLinks()
+    protected function getLinks()
     {
         if (null === $this->crawler) {
             $this->crawl();
         }
 
-        $crawler = $this->crawler;
-        $crawler = $crawler->filter('a');
+        $crawler = $this->crawler->filter('a');
 
         $links = [];
         /** @var DOMElement $element */
         foreach ($crawler as $element) {
-            $links[] = $element->getAttribute('href');
+            $url = $element->getAttribute('href');
+            $links[] = $url;
         }
 
         return $links;
     }
 
     /**
-     * Get unique links from crawled page.
-     *
-     * @return array
+     * @return array|CrawlLink[]
      */
-    public function getUniqueLinks()
+    public function getUniqueCrawlLinks(): array
     {
-        return array_unique($this->getLinks());
+        $urls = array_unique($this->getLinks());
+        $crawlLinks = [];
+        foreach ($urls as $url) {
+            $crawlLink = new CrawlLink();
+            $crawlLink->setLink($url)
+                ->setWebsite($this->crawlLink->getWebsite());
+
+            $crawlLinks[] = $crawlLink;
+        }
+
+        return $crawlLinks;
     }
 
     /**

@@ -56,4 +56,24 @@ class CrawlLinkRepository extends EntityRepository
             ->getQuery()
             ->getResult();
     }
+
+    /**
+     * Get array most proven crawl links.
+     *
+     * @param Website $website
+     * @param int     $avgNewLinks
+     *
+     * @return CrawlLink[]
+     */
+    public function getEfficientUrls(Website $website, int $avgNewLinks)
+    {
+        return $this->createQueryBuilder('l')
+            ->select()
+            ->where('l.website = :website')
+            ->setParameter('website', $website)
+            ->andWhere('l.crawlSuccesses / l.crawlCount >= :avgNewLinks')
+            ->setParameter('avgNewLinks', $avgNewLinks)
+            ->getQuery()
+            ->getResult();
+    }
 }

@@ -4,6 +4,7 @@ crawler:
       ignorePageUrlsWith:
         - error
       name: "IJssel en Lekstreek (Capelle)"
+      trimGET: true
     -
       ignorePageUrlsWith:
         - archive

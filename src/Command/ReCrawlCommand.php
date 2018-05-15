@@ -13,7 +13,7 @@ use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Style\SymfonyStyle;
 use Symfony\Component\Yaml\Yaml;
 
-class SpiderCommand extends ContainerAwareCommand
+class ReCrawlCommand extends ContainerAwareCommand
 {
     /**
      * @var SpiderService
@@ -42,8 +42,8 @@ class SpiderCommand extends ContainerAwareCommand
 
     protected function configure()
     {
-        $this->setName('newssearch:spider:crawl')
-            ->setDescription('Send spider to crawl targets');
+        $this->setName('newssearch:spider:recrawl')
+            ->setDescription('Send spider to re-crawl targets, faster and less thorough than than crawl.');
     }
 
     /**
@@ -51,6 +51,7 @@ class SpiderCommand extends ContainerAwareCommand
      * @param OutputInterface $output
      *
      * @return bool
+     * @throws \Exception
      */
     protected function execute(InputInterface $input, OutputInterface $output)
     {
@@ -79,7 +80,7 @@ class SpiderCommand extends ContainerAwareCommand
                 }
             }
 
-            $newLinks += $this->spiderService->crawlSite($website, $writer, $websiteConfig);
+            $newLinks += $this->spiderService->CrawlSite($website, $writer, $websiteConfig, true);
         }
 
         $writer->success('Added '.$newLinks.' new crawl links');

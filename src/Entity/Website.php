@@ -149,6 +149,20 @@ class Website
     }
 
     /**
+     * Get homepage as CrawlLink.
+     *
+     * @return CrawlLink
+     */
+    public function getHomPageCrawlLink(): CrawlLink
+    {
+        $crawlLink = new CrawlLink();
+        $crawlLink->setWebsite($this)
+            ->setLink('');
+
+        return $crawlLink;
+    }
+
+    /**
      * Set lastCrawled
      *
      * @param DateTime|null $lastCrawled
@@ -250,6 +264,16 @@ class Website
         }
 
         return $this;
+    }
+
+    /**
+     * Clear all CrawlLinks
+     *
+     * @return void
+     */
+    public function clearCrawlLinks(): void
+    {
+        $this->crawlLinks->clear();
     }
 
     /**
