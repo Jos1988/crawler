@@ -1,9 +1,8 @@
 <?php
 
-namespace App\Service;
+namespace App;
 
 use App\Entity\CrawlLink;
-use App\Entity\Website;
 use App\Exceptions\CrawlException;
 use DOMElement;
 use Symfony\Component\DomCrawler\Crawler;
@@ -36,7 +35,7 @@ class Spider
     public function crawl(): Crawler
     {
         if (null === $this->crawlLink) {
-           throw new CrawlException('Crawl link not set on Spider');
+            throw new CrawlException('Crawl link not set on Spider');
         }
 
         $curlHandler = curl_init($this->crawlLink->getAbsoluteLink());
@@ -61,7 +60,7 @@ class Spider
     protected function getLinks()
     {
         if (null === $this->crawler) {
-            $this->crawl();
+            throw new CrawlException('Spider hasn\'t crawled yes');
         }
 
         $crawler = $this->crawler->filter('a');

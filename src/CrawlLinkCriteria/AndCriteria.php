@@ -21,7 +21,7 @@ class AndCriteria implements Criteria
 
     public function __construct(Criteria ...$criteria)
     {
-        $this->criteria[] = $criteria;
+        $this->criteria = $criteria;
     }
 
     /**

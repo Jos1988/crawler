@@ -34,7 +34,7 @@ class CriteriaNew implements Criteria
     {
         $valid = [];
 
-        foreach ($crawlLinks as $crawlLink) {
+        foreach (array_unique($crawlLinks) as $crawlLink) {
             $unique = true;
             foreach ($this->existingCrawlLinks as $existingCrawlLink) {
                 if ($crawlLink->getLink() === $existingCrawlLink->getLink()) {

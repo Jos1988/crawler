@@ -19,7 +19,7 @@ class CriteriaNotIgnoredUrl implements Criteria
 
     public function meetCriteria(array $crawlLinks): array
     {
-        if (null !== $this->config) {
+        if (false === isset($this->config)) {
             throw new FilterException('no configuration set.', 500);
         }
 
