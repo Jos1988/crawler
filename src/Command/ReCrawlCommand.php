@@ -16,7 +16,7 @@ use Symfony\Component\Yaml\Yaml;
 class ReCrawlCommand extends ContainerAwareCommand
 {
     /**
-     * @var SpiderService
+     * @deprecated
      */
     private $spiderService;
 
@@ -29,14 +29,12 @@ class ReCrawlCommand extends ContainerAwareCommand
      * SpiderCommand constructor.
      *
      * @param null|string            $name
-     * @param SpiderService          $spiderService
      * @param EntityManagerInterface $em
      */
-    public function __construct(?string $name = null, SpiderService $spiderService, EntityManagerInterface $em)
+    public function __construct(?string $name = null, EntityManagerInterface $em)
     {
         parent::__construct($name);
 
-        $this->spiderService = $spiderService;
         $this->em = $em;
     }
 

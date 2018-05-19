@@ -56,7 +56,7 @@ class Website
     /**
      * @var ArrayCollection|CrawlLink[]
      *
-     * @ORM\OneToMany(targetEntity="App\Entity\CrawlLink", mappedBy="website")
+     * @ORM\OneToMany(targetEntity="CrawlLink", mappedBy="website", cascade={"persist, remove"}, orphanRemoval=true)
      */
     private $crawlLinks;
 

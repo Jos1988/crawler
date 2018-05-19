@@ -45,7 +45,7 @@ class CrawlLinkRepository extends EntityRepository
      *
      * @return CrawlLink[]
      */
-    public function getUnCrawledLinks(Website $website)
+    public function getUnCrawledLinks(Website $website): array
     {
         return $this->createQueryBuilder('l')
             ->select()

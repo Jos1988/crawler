@@ -3,15 +3,16 @@
 namespace App\Command;
 
 use App\Config\CrawlerConfiguration;
-use App\CrawlLinkCriteria\AndCriteria;
-use App\CrawlLinkCriteria\CriteriaNew;
-use App\CrawlLinkCriteria\CriteriaNotIgnoredUrl;
-use App\CrawlLinkCriteria\CriteriaValidUrl;
+use App\Criteria\AndCriteria;
+use App\Criteria\CriteriaNew;
+use App\Criteria\CriteriaNotIgnoredUrl;
+use App\Criteria\CriteriaValidUrl;
 use App\Entity\CrawlLink;
 use App\Entity\Website;
-use App\Service\SpiderService;
+use App\Repository\CrawlLinkRepository;
 use App\Spider;
 use Doctrine\ORM\EntityManagerInterface;
+use Doctrine\ORM\EntityRepository;
 use Symfony\Bundle\FrameworkBundle\Command\ContainerAwareCommand;
 use Symfony\Component\Config\Definition\Processor;
 use Symfony\Component\Console\Input\InputInterface;
@@ -22,17 +23,28 @@ use Symfony\Component\Yaml\Yaml;
 class CrawlCommand extends ContainerAwareCommand
 {
     /**
-     * @var SpiderService
-     */
-    private $spiderService;
-
-    /**
      * @var EntityManagerInterface
      */
     private $em;
 
+    /**
+     * @var CrawlLinkRepository
+     */
+    private $crawlLinkRepo;
+
+    /**
+     * @var EntityRepository
+     */
+    private $websiteRepo;
+    
+    /**
+     * @var string 
+     */
     private $lastUrl = '';
 
+    /**
+     * @var int
+     */
     private $lowDistanceUrls;
 
     /**
@@ -46,6 +58,8 @@ class CrawlCommand extends ContainerAwareCommand
         parent::__construct($name);
 
         $this->em = $em;
+        $this->crawlLinkRepo = $this->em->getRepository(CrawlLink::class);
+        $this->websiteRepo = $this->em->getRepository(Website::class);
     }
 
     protected function configure()
@@ -63,12 +77,11 @@ class CrawlCommand extends ContainerAwareCommand
      */
     protected function execute(InputInterface $input, OutputInterface $output)
     {
-        $websiteRepo = $this->em->getRepository(Website::class);
-        $websites = $websiteRepo->findAll();
+        $websites = $this->websiteRepo->findAll();
         $writer = new SymfonyStyle($input, $output);
         $writer->newLine();
 
-        //write out crawlable websites.
+        //write out websites.
         foreach ($websites as $website) {
             $writer->comment($website->getId().'| '.$website->getName());
         }
@@ -81,10 +94,8 @@ class CrawlCommand extends ContainerAwareCommand
             return false;
         }
 
-        $website = $websiteRepo->findOneBy(['id' => $websiteId]);
+        $website = $this->websiteRepo->findOneBy(['id' => $websiteId]);
         $config = $this->validateConfig();
-
-        /** @var Website $website */
         $websiteConfig = null;
         foreach ($config['websites'] as $websiteConfigInstance) {
             if ($website->getName() === $websiteConfigInstance['name']) {
@@ -92,13 +103,16 @@ class CrawlCommand extends ContainerAwareCommand
             }
         }
 
-        $this->spiderService = new SpiderService($this->em, $websiteConfig);
-        $this->spiderService->setWebsite($website);
+        //initial crawl, clear all crawl links and add homepage.
+        $website->clearCrawlLinks();
+        $homepage = $website->getHomPageCrawlLink();
+        $this->em->persist($website);
+        $this->em->persist($homepage);
+        $this->em->flush();
 
-        //initial crawl, clear all crawl links and add homepage
-        $this->spiderService->resetCrawlData();
+        die;
 
-        $linksToCrawl = $this->spiderService->getUncrawledLinks(false);
+        $linksToCrawl = $this->crawlLinkRepo->getUnCrawledLinks($website);
 
         $writer->block('Starting Crawl.');
 
@@ -162,7 +176,7 @@ class CrawlCommand extends ContainerAwareCommand
             $this->em->flush();
 
             if (0 === count($linksToCrawl)) {
-                $linksToCrawl = $this->spiderService->getUncrawledLinks(false);
+                $linksToCrawl = $this->crawlLinkRepo->getUnCrawledLinks($website);
                 $writer->comment(sprintf('%d links to crawl.', count($linksToCrawl)));
             }
         } while (0 !== count($linksToCrawl));
