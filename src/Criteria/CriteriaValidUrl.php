@@ -15,7 +15,7 @@ use App\Entity\CrawlLink;
  * @package App\CrawlLinkCriteria
  */
 class CriteriaValidUrl implements Criteria
-{
+{ //todo: change name... valid is to vague.
     /**
      * @param array $crawlLinks
      *
@@ -27,9 +27,9 @@ class CriteriaValidUrl implements Criteria
         /** @var CrawlLink $crawlLink */
         foreach ($crawlLinks as $crawlLink) {
             $url = $crawlLink->getLink();
-            if (strlen($url) > 2 && '/' === $url[0]) {
-                $valid[] = $crawlLink;
-            }
+            if (strlen($url) > 2 && '/' === $url[0]) { //todo refactor to two filters.
+                $valid[] = $crawlLink;                 //todo relative url check should also account for absolute urls
+            }                                          //todo that point to the same website.
         }
 
         return $valid;

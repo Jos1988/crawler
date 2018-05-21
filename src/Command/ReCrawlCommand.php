@@ -2,7 +2,7 @@
 
 namespace App\Command;
 
-use App\Config\CrawlerConfiguration;
+use App\Config\WebsiteConfiguration;
 use App\Entity\Website;
 use App\Service\SpiderService;
 use Doctrine\ORM\EntityManagerInterface;
@@ -96,7 +96,7 @@ class ReCrawlCommand extends ContainerAwareCommand
         );
 
         $processor = new Processor();
-        $configurator = new CrawlerConfiguration();
+        $configurator = new WebsiteConfiguration();
 
         return $processor->processConfiguration($configurator, $config);
     }

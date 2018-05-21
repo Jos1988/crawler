@@ -2,17 +2,15 @@
 
 namespace App\Command;
 
-use App\Config\CrawlerConfiguration;
-use App\Criteria\AndCriteria;
-use App\Criteria\CriteriaNew;
-use App\Criteria\CriteriaNotIgnoredUrl;
-use App\Criteria\CriteriaValidUrl;
+use App\Config\WebsiteConfiguration;
 use App\Entity\CrawlLink;
 use App\Entity\Website;
 use App\Repository\CrawlLinkRepository;
-use App\Spider;
+use App\UrlMapper\UrlMapper;
+use App\UrlMapper\UrlMapperInterface;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\EntityRepository;
+use Psr\Log\LoggerInterface;
 use Symfony\Bundle\FrameworkBundle\Command\ContainerAwareCommand;
 use Symfony\Component\Config\Definition\Processor;
 use Symfony\Component\Console\Input\InputInterface;
@@ -28,6 +26,11 @@ class CrawlCommand extends ContainerAwareCommand
     private $em;
 
     /**
+     * @var UrlMapperInterface
+     */
+    private $mapper;
+
+    /**
      * @var CrawlLinkRepository
      */
     private $crawlLinkRepo;
@@ -36,9 +39,9 @@ class CrawlCommand extends ContainerAwareCommand
      * @var EntityRepository
      */
     private $websiteRepo;
-    
+
     /**
-     * @var string 
+     * @var string
      */
     private $lastUrl = '';
 
@@ -50,14 +53,22 @@ class CrawlCommand extends ContainerAwareCommand
     /**
      * SpiderCommand constructor.
      *
-     * @param null|string            $name
-     * @param EntityManagerInterface $em
+     * @param null|string              $name
+     * @param EntityManagerInterface   $em
+     * @param UrlMapper                $urlMapper
+     * @param \Psr\Log\LoggerInterface $logger
      */
-    public function __construct(?string $name = null, EntityManagerInterface $em)
-    {
+    public function __construct(
+        ?string $name = null,
+        EntityManagerInterface $em,
+        UrlMapper $urlMapper,
+        LoggerInterface $logger
+    ) {
         parent::__construct($name);
 
         $this->em = $em;
+        $this->mapper = $urlMapper;
+        $this->mapper->setLogger($logger);
         $this->crawlLinkRepo = $this->em->getRepository(CrawlLink::class);
         $this->websiteRepo = $this->em->getRepository(Website::class);
     }
@@ -73,7 +84,6 @@ class CrawlCommand extends ContainerAwareCommand
      * @param OutputInterface $output
      *
      * @return bool
-     * @throws \Exception
      */
     protected function execute(InputInterface $input, OutputInterface $output)
     {
@@ -95,91 +105,91 @@ class CrawlCommand extends ContainerAwareCommand
         }
 
         $website = $this->websiteRepo->findOneBy(['id' => $websiteId]);
-        $config = $this->validateConfig();
-        $websiteConfig = null;
-        foreach ($config['websites'] as $websiteConfigInstance) {
-            if ($website->getName() === $websiteConfigInstance['name']) {
-                $websiteConfig = $websiteConfigInstance;
-            }
-        }
 
-        //initial crawl, clear all crawl links and add homepage.
-        $website->clearCrawlLinks();
-        $homepage = $website->getHomPageCrawlLink();
-        $this->em->persist($website);
-        $this->em->persist($homepage);
-        $this->em->flush();
+        $config = Yaml::parse(
+            file_get_contents(__DIR__.'/../../config/crawler.yaml')
+        );
 
-        die;
+        $this->mapper->setConfig($config);
+        $this->mapper->mapWebsiteUrls($website);
 
-        $linksToCrawl = $this->crawlLinkRepo->getUnCrawledLinks($website);
+//        //initial crawl, clear all crawl links and add homepage.
+//        $website->clearCrawlLinks();
+//        $homepage = $website->getHomPageCrawlLink();
+//        $this->em->persist($website);
+//        $this->em->flush();
+//
+//        $this->em->persist($homepage);
+//        $this->em->flush();
+//
+//        $linksToCrawl = $this->crawlLinkRepo->getUnCrawledLinks($website);
+//
+//        $writer->block('Starting Crawl.');
 
-        $writer->block('Starting Crawl.');
-
-        do {
-            $crawlLink = array_shift($linksToCrawl);
-
-            $writer->comment('crawling: '.$crawlLink->getLink());
-
-            //crawl for links.
-            $spider = new Spider($crawlLink);
-            $spider->crawl();
-            $newCrawlLinks = $spider->getUniqueCrawlLinks();
-
-            //Set link as crawled.
-            $crawlLink
-                ->setCrawled(true)
-                ->setCrawlDate(new \DateTime('now'));
-
-            $this->em->persist($crawlLink);
-            $this->em->flush();
-
-            //trim GET params //todo: refactor
-            if (true === $websiteConfig['trimGET']) {
-                $trimmed = [];
-                foreach ($newCrawlLinks as $newCrawlLink) {
-                    $trimmedLink = strtok($newCrawlLink->getLink(), '?');
-                    $newCrawlLink->setLink($trimmedLink);
-                    $trimmed[] = $newCrawlLink;
-                }
-
-                $newCrawlLinks = $trimmed;
-            }
-
-            //filter
-            $filter = new AndCriteria(
-                new CriteriaValidUrl(),
-                new CriteriaNotIgnoredUrl($websiteConfig),
-                new CriteriaNew($website->getCrawlLinks()->toArray())
-            );
-
-            /** @var CrawlLink[] $newCrawlLinks */
-            $newCrawlLinks = $filter->meetCriteria($newCrawlLinks);
-
-            //check similar urls. //todo: refactor
-            $nonSimilarUrls = [];
-            foreach ($newCrawlLinks as $newCrawlLink) {
-                if (false === $this->similarUrlCheck($newCrawlLink->getLink())) {
-                    $nonSimilarUrls[] = $newCrawlLink;
-                }
-            }
-
-            $newCrawlLinks = $nonSimilarUrls;
-
-            $writer->comment(sprintf('Persisting %d new links.', count($newCrawlLinks)));
-            foreach ($newCrawlLinks as $newCrawlLink) {
-                $this->em->persist($newCrawlLink);
-                $website->addCrawlLink($newCrawlLink);
-            }
-
-            $this->em->persist($crawlLink);
-            $this->em->flush();
-
-            if (0 === count($linksToCrawl)) {
-                $linksToCrawl = $this->crawlLinkRepo->getUnCrawledLinks($website);
-                $writer->comment(sprintf('%d links to crawl.', count($linksToCrawl)));
-            }
-        } while (0 !== count($linksToCrawl));
+//        do {
+//            $crawlLink = array_shift($linksToCrawl);
+//
+//            $writer->comment('crawling: '.$crawlLink->getLink());
+//
+//            //crawl for links.
+//            $spider = new Spider($crawlLink);
+//            $spider->crawl();
+//            $newCrawlLinks = $spider->getUniqueCrawlLinks();
+//
+//            //Set link as crawled.
+//            $crawlLink
+//                ->setCrawled(true)
+//                ->setCrawlDate(new \DateTime('now'));
+//
+//            $this->em->persist($crawlLink);
+//            $this->em->flush();
+//
+//            //trim GET params //todo: refactor to transformater??
+//            if (true === $websiteConfig['trimGET']) {
+//                $trimmed = [];
+//                foreach ($newCrawlLinks as $newCrawlLink) {
+//                    $trimmedLink = strtok($newCrawlLink->getLink(), '?');
+//                    $newCrawlLink->setLink($trimmedLink);
+//                    $trimmed[] = $newCrawlLink;
+//                }
+//
+//                $newCrawlLinks = $trimmed;
+//            }
+//
+//            //filters
+//            $filter = new AndCriteria(
+//                new CriteriaValidUrl(),
+//                new CriteriaNotIgnoredUrl($websiteConfig),
+//                new CriteriaNew($website->getCrawlLinks()->toArray())
+//            );
+//
+//            /** @var CrawlLink[] $newCrawlLinks */
+//            $newCrawlLinks = $filter->meetCriteria($newCrawlLinks);
+//
+//            //check similar urls. //todo: refactor
+//            $nonSimilarUrls = [];
+//            foreach ($newCrawlLinks as $newCrawlLink) {
+//                if (false === $this->similarUrlCheck($newCrawlLink->getLink())) {
+//                    $nonSimilarUrls[] = $newCrawlLink;
+//                }
+//            }
+//
+//            $newCrawlLinks = $nonSimilarUrls;
+//
+//            $writer->comment(sprintf('Persisting %d new links.', count($newCrawlLinks)));
+//            foreach ($newCrawlLinks as $newCrawlLink) {
+//                $this->em->persist($newCrawlLink);
+//                $website->addCrawlLink($newCrawlLink);
+//            }
+//
+//            $this->em->persist($crawlLink);
+//            $this->em->flush();
+//
+//            if (0 === count($linksToCrawl)) {
+//                $linksToCrawl = $this->crawlLinkRepo->getUnCrawledLinks($website);
+//                $writer->comment(sprintf('%d links to crawl.', count($linksToCrawl)));
+//            }
+//        } while (0 !== count($linksToCrawl));
     }
 
     /**
@@ -218,7 +228,7 @@ class CrawlCommand extends ContainerAwareCommand
         );
 
         $processor = new Processor();
-        $configurator = new CrawlerConfiguration();
+        $configurator = new WebsiteConfiguration();
 
         return $processor->processConfiguration($configurator, $config);
     }

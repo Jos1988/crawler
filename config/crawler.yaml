@@ -10,3 +10,8 @@ crawler:
         - archive
         - test
       name: "test"
+    -
+      ignorePageUrlsWith:
+        - error
+      name: "het Urkerland"
+      trimGET: true

@@ -5,4 +5,6 @@ App\Entity\Area:
         name: Capelle aan den IJssel
         parent_area: '@Area_0'
         websites: [ '@Website_0' ]
-
+    Area_2:
+        name: Urk en omg (test)
+        websites: [ '@Website_1' ]

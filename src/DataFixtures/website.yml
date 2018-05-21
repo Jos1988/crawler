@@ -3,3 +3,7 @@ App\Entity\Website:
         name: IJssel en Lekstreek (Capelle)
         url: https://capelle.ijsselenlekstreek.nl/
         areas: [ '@Area_1' ]
+    Website_1:
+        name: het Urkerland
+        url: https://www.heturkerland.nl/
+        areas: [ '@Area_2' ]

@@ -56,7 +56,7 @@ class Website
     /**
      * @var ArrayCollection|CrawlLink[]
      *
-     * @ORM\OneToMany(targetEntity="CrawlLink", mappedBy="website", cascade={"persist, remove"}, orphanRemoval=true)
+     * @ORM\OneToMany(targetEntity="CrawlLink", mappedBy="website", cascade={"persist", "remove"}, orphanRemoval=true)
      */
     private $crawlLinks;
 
@@ -146,20 +146,6 @@ class Website
     public function getUrl(): string
     {
         return $this->url;
-    }
-
-    /**
-     * Get homepage as CrawlLink.
-     *
-     * @return CrawlLink
-     */
-    public function getHomPageCrawlLink(): CrawlLink
-    {
-        $crawlLink = new CrawlLink();
-        $crawlLink->setWebsite($this)
-            ->setLink('');
-
-        return $crawlLink;
     }
 
     /**
