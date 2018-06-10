@@ -1,3 +1,38 @@
+<<<<<<< HEAD
+<?php
+
+namespace App\Criteria;
+
+/**
+ * Class ValidUrlCriteria
+ * @package App\CrawlLinkCriteria
+ */
+class AndCriteria implements Criteria
+{
+    /**
+     * @var Criteria[]
+     */
+    private $criteria = [];
+
+    public function __construct(Criteria ...$criteria)
+    {
+        $this->criteria = $criteria;
+    }
+
+    /**
+     * @param array $crawlLinks
+     *
+     * @return array
+     */
+    public function meetCriteria(array $crawlLinks): array
+    {
+        foreach ($this->criteria as $criterion) {
+            $crawlLinks = $criterion->meetCriteria($crawlLinks);
+        }
+
+        return $crawlLinks;
+    }
+=======
 <?php
 /**
  * Created by PhpStorm.
@@ -37,4 +72,5 @@ class AndCriteria implements Criteria
 
         return $crawlLinks;
     }
+>>>>>>> parent of 00b8745... consolidate
 }
