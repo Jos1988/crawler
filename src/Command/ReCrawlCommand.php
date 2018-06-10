@@ -2,19 +2,21 @@
 
 namespace App\Command;
 
+use App\Config\WebsiteConfiguration;
 use App\Entity\Website;
 use App\Service\SpiderService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Command\ContainerAwareCommand;
+use Symfony\Component\Config\Definition\Processor;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Style\SymfonyStyle;
-use Symfony\Component\VarDumper\Cloner\VarCloner;
+use Symfony\Component\Yaml\Yaml;
 
-class SpiderCommand extends ContainerAwareCommand
+class ReCrawlCommand extends ContainerAwareCommand
 {
     /**
-     * @var SpiderService
+     * @deprecated
      */
     private $spiderService;
 
@@ -27,21 +29,19 @@ class SpiderCommand extends ContainerAwareCommand
      * SpiderCommand constructor.
      *
      * @param null|string            $name
-     * @param SpiderService          $spiderService
      * @param EntityManagerInterface $em
      */
-    public function __construct(?string $name = null, SpiderService $spiderService, EntityManagerInterface $em)
+    public function __construct(?string $name = null, EntityManagerInterface $em)
     {
         parent::__construct($name);
 
-        $this->spiderService = $spiderService;
         $this->em = $em;
     }
 
     protected function configure()
     {
-        $this->setName('newssearch:spider:crawl')
-            ->setDescription('Send spider to crawl targets');
+        $this->setName('newssearch:spider:recrawl')
+            ->setDescription('Send spider to re-crawl targets, faster and less thorough than than crawl.');
     }
 
     /**
@@ -49,13 +49,13 @@ class SpiderCommand extends ContainerAwareCommand
      * @param OutputInterface $output
      *
      * @return bool
+     * @throws \Exception
      */
     protected function execute(InputInterface $input, OutputInterface $output)
     {
+        $config = $this->validateConfig();
+
         $newLinks = 0;
-//        $container = $this->getContainer();
-//        $spiderService = $container->get(SpiderService::class);
-//         = $container->get(WebsiteRepository::class);
         $websiteRepo = $this->em->getRepository(Website::class);
 
         $writer = new SymfonyStyle($input, $output);
@@ -70,9 +70,34 @@ class SpiderCommand extends ContainerAwareCommand
         $websites = $websiteRepo->findAll();
         /** @var Website $website */
         foreach ($websites as $website) {
-            $newLinks += $this->spiderService->crawlSite($website, $writer);
+
+            $websiteConfig = null;
+            foreach ($config['websites'] as $websiteConfigInstance) {
+                if ($website->getName() === $websiteConfigInstance['name']) {
+                    $websiteConfig = $websiteConfigInstance;
+                }
+            }
+
+            $newLinks += $this->spiderService->CrawlSite($website, $writer, $websiteConfig, true);
         }
 
-        $writer->success('Added '. $newLinks .' new crawl links');
+        $writer->success('Added '.$newLinks.' new crawl links');
+    }
+
+    /**
+     * validate crawler configuration.
+     *
+     * @return array
+     */
+    private function validateConfig()
+    {
+        $config = Yaml::parse(
+            file_get_contents(__DIR__.'/../../config/crawler.yaml')
+        );
+
+        $processor = new Processor();
+        $configurator = new WebsiteConfiguration();
+
+        return $processor->processConfiguration($configurator, $config);
     }
 }

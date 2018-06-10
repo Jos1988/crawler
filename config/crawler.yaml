@@ -1,0 +1,17 @@
+crawler:
+  websites:
+    -
+      ignorePageUrlsWith:
+        - error
+      name: "IJssel en Lekstreek (Capelle)"
+      trimGET: true
+    -
+      ignorePageUrlsWith:
+        - archive
+        - test
+      name: "test"
+    -
+      ignorePageUrlsWith:
+        - error
+      name: "het Urkerland"
+      trimGET: true

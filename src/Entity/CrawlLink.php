@@ -39,9 +39,27 @@ class CrawlLink
     /**
      * @var \DateTime
      *
-     * @ORM\Column(name="crawlDate", type="datetime", nullable=true)
+     * @ORM\Column(name="crawl_date", type="datetime", nullable=true)
      */
     private $crawlDate;
+
+    /**
+     * Number of times crawled.
+     *
+     * @var int
+     *
+     * @ORM\Column(name="crawl_count", type="integer", nullable=false, options={"default"=0})
+     */
+    private $crawlCount = 0;
+
+    /**
+     * Number of new links found at this address.
+     *
+     * @var int
+     *
+     * @ORM\Column(name="crawl_successes", type="integer", nullable=false, options={"default"=0})
+     */
+    private $crawlSuccesses = 0;
 
     /**
      * @var Website
@@ -143,6 +161,66 @@ class CrawlLink
     }
 
     /**
+     * get CrawlCount
+     *
+     * @return int
+     */
+    public function getCrawlCount(): int
+    {
+        return $this->crawlCount;
+    }
+
+    /**
+     * set CrawlCount
+     *
+     * @param int $crawlCount
+     *
+     * @return CrawlLink
+     */
+    public function setCrawlCount(int $crawlCount)
+    {
+        $this->crawlCount = $crawlCount;
+
+        return $this;
+    }
+
+    /**
+     * add one to crawl count.
+     *
+     * @return CrawlLink
+     */
+    public function addCrawlCount()
+    {
+        $this->crawlCount++;
+
+        return $this;
+    }
+
+    /**
+     * get CrawlSuccesses
+     *
+     * @return int
+     */
+    public function getCrawlSuccesses(): int
+    {
+        return $this->crawlSuccesses;
+    }
+
+    /**
+     * set CrawlSuccesses
+     *
+     * @param int $crawlSuccesses
+     *
+     * @return CrawlLink
+     */
+    public function setCrawlSuccesses(int $crawlSuccesses)
+    {
+        $this->crawlSuccesses = $crawlSuccesses;
+
+        return $this;
+    }
+
+    /**
      * get Website
      *
      * @return Website
@@ -164,5 +242,13 @@ class CrawlLink
         $this->website = $website;
 
         return $this;
+    }
+
+    /**
+     * @return string
+     */
+    public function __toString(): string
+    {
+        return $this->getAbsoluteLink();
     }
 }

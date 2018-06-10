@@ -5,6 +5,7 @@ namespace App\Entity;
 use ApiPlatform\Core\Annotation\ApiResource;
 use DateTime;
 use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 
 /**
@@ -55,7 +56,7 @@ class Website
     /**
      * @var ArrayCollection|CrawlLink[]
      *
-     * @ORM\OneToMany(targetEntity="App\Entity\CrawlLink", mappedBy="website")
+     * @ORM\OneToMany(targetEntity="CrawlLink", mappedBy="website", cascade={"persist", "remove"}, orphanRemoval=true)
      */
     private $crawlLinks;
 
@@ -200,7 +201,7 @@ class Website
      *
      * @return ArrayCollection|CrawlLink[]
      */
-    public function getCrawlLinks(): array
+    public function getCrawlLinks(): Collection
     {
         return $this->crawlLinks;
     }
@@ -249,6 +250,16 @@ class Website
         }
 
         return $this;
+    }
+
+    /**
+     * Clear all CrawlLinks
+     *
+     * @return void
+     */
+    public function clearCrawlLinks(): void
+    {
+        $this->crawlLinks->clear();
     }
 
     /**

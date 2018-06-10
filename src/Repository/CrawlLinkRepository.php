@@ -15,7 +15,7 @@ use App\Entity\CrawlLink;
 class CrawlLinkRepository extends EntityRepository
 {
     /**
-     * Check if link is already in database.
+     * Get all url's from a websites CrawlLinks and return in an array.
      *
      * @param Website $website
      *
@@ -23,10 +23,19 @@ class CrawlLinkRepository extends EntityRepository
      */
     public function getAllUrls(Website $website)
     {
-        return $this->createQueryBuilder('l')
+        $roughResults = $this->createQueryBuilder('l')
             ->select('l.link')
+            ->where('l.website = :website')
+            ->setParameter('website', $website)
             ->getQuery()
             ->getResult();
+
+        $result = [];
+        foreach ($roughResults as $roughResult) {
+            $result[] = $roughResult['link'];
+        }
+
+        return $result;
     }
 
     /**
@@ -36,7 +45,7 @@ class CrawlLinkRepository extends EntityRepository
      *
      * @return CrawlLink[]
      */
-    public function getUnCrawledLinks(Website $website)
+    public function getUnCrawledLinks(Website $website): array
     {
         return $this->createQueryBuilder('l')
             ->select()
@@ -44,6 +53,26 @@ class CrawlLinkRepository extends EntityRepository
             ->setParameter('website', $website)
             ->andWhere('l.crawled = :crawled')
             ->setParameter('crawled', false)
+            ->getQuery()
+            ->getResult();
+    }
+
+    /**
+     * Get array most proven crawl links.
+     *
+     * @param Website $website
+     * @param int     $avgNewLinks
+     *
+     * @return CrawlLink[]
+     */
+    public function getEfficientUrls(Website $website, int $avgNewLinks)
+    {
+        return $this->createQueryBuilder('l')
+            ->select()
+            ->where('l.website = :website')
+            ->setParameter('website', $website)
+            ->andWhere('l.crawlSuccesses / l.crawlCount >= :avgNewLinks')
+            ->setParameter('avgNewLinks', $avgNewLinks)
             ->getQuery()
             ->getResult();
     }
