@@ -1,86 +1,53 @@
-<<<<<<< HEAD
 <?php
 
 namespace App\Criteria;
 
-use App\Entity\CrawlLink;
 use App\Exceptions\FilterException;
+use Psr\Http\Message\UriInterface;
 
-class CriteriaNotIgnoredUrl implements Criteria
+class CriteriaNotIgnoredUrl extends LoggableCriteria
 {
     /**
      * @var array
      */
     protected $config;
 
+    /**
+     * CriteriaNotIgnoredUrl constructor.
+     *
+     * @param array|null $config
+     */
     public function __construct(array $config = null)
     {
         $this->config = $config;
     }
 
-    public function meetCriteria(array $crawlLinks): array
+    /**
+     * @param UriInterface $uri
+     *
+     * @return bool
+     */
+    public function meetCriteria(UriInterface $uri): bool
     {
         if (false === isset($this->config)) {
             throw new FilterException('no configuration set.');
         }
 
-        $notIgnored = [];
-        /** @var CrawlLink $crawlLink */
-        foreach ($crawlLinks as $crawlLink) {
-            $url = $crawlLink->getLink();
-            $ignoreList = $this->config['ignorePageUrlsWith'];
-            foreach ($ignoreList as $ignoreString) {
-                if (false !== strpos($url, $ignoreString)) {
-                    continue;
-                }
+        $ignoreList = $this->config['ignorePageUrlsWith'];
+        foreach ($ignoreList as $ignoreString) {
+            if (false !== strpos($uri->getPath(), $ignoreString)) {
+                $this->logger->alert(
+                    sprintf(
+                        'Url rejected, configured to ignore, url: %s, ignore: %s',
+                        $uri->getPath(),
+                        $ignoreString
+                    )
+                );
+
+                return false;
             }
-
-            $notIgnored[] = $crawlLink;
         }
 
-        return $notIgnored;
+        return true;
     }
-=======
-<?php
-
-namespace App\Criteria;
-
-use App\Entity\CrawlLink;
-use App\Exceptions\FilterException;
-
-class CriteriaNotIgnoredUrl implements Criteria
-{
-    /**
-     * @var array
-     */
-    protected $config;
-
-    public function __construct(array $config = null)
-    {
-        $this->config = $config;
-    }
-
-    public function meetCriteria(array $crawlLinks): array
-    {
-        if (false === isset($this->config)) {
-            throw new FilterException('no configuration set.', 500);
-        }
-
-        $notIgnored = [];
-        /** @var CrawlLink $crawlLink */
-        foreach ($crawlLinks as $crawlLink) {
-            $url = $crawlLink->getLink();
-            $ignoreList = $this->config['ignorePageUrlsWith'];
-            foreach ($ignoreList as $ignoreString) {
-                if (false !== strpos($url, $ignoreString)) {
-                    continue;
-                }
-            }
-
-            $notIgnored[] = $crawlLink;
-        }
-
-        return $notIgnored;
-    }
->>>>>>> parent of 00b8745... consolidate
 }

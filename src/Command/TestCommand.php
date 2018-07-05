@@ -2,9 +2,9 @@
 
 namespace App\Command;
 
-use App\Entity\CrawlLink;
-use App\Modifiers\CrawlLinkModifiers\ModGetTrim;
-use App\Modifiers\CrawlLinkModifiers\ModIDTrim;
+use App\Crawler\MyCrawlObserver;
+use Psr\Log\LoggerInterface;
+use Spatie\Crawler\Crawler;
 use Symfony\Bundle\FrameworkBundle\Command\ContainerAwareCommand;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
@@ -12,12 +12,19 @@ use Symfony\Component\Console\Output\OutputInterface;
 class TestCommand extends ContainerAwareCommand
 {
     /**
+     * @var LoggerInterface
+     */
+    public $logger;
+
+    /**
      * TestCommand constructor.
      *
+     * @param LoggerInterface $logger
      */
-    public function __construct()
+    public function __construct(LoggerInterface $logger)
     {
         parent::__construct();
+        $this->logger = $logger;
     }
 
     protected function configure()
@@ -32,25 +39,12 @@ class TestCommand extends ContainerAwareCommand
      */
     protected function execute(InputInterface $input, OutputInterface $output)
     {
-        $getTrimmer = new ModGetTrim();
-        $idTrimmer = new ModIDTrim();
+        $url = 'https://www.heturkerland.nl/';
+        $observer = new MyCrawlObserver($this->logger);
 
-//        $idTrimmer->chain($getTrimmer);
-
-        $input = new CrawlLink();
-        $input->setLink('test1?test2#test3');
-
-        $output1 = $getTrimmer->modify($input);
-        dump($output1->getLink());
-
-//        dump('--------');
-//        $getTrimmer = new GetTrimmer();
-//        $idTrimmer = new IdTrimmer();
-////        $idTrimmer->chain($getTrimmer);
-//        $input = new CrawlLink();
-//        $input->setLink('test#test?test');
-//
-//        $output2 = $idTrimmer->modify($input);
-//        dump($output2->getLink());
+        Crawler::create()
+            ->setMaximumCrawlCount(10)
+            ->setCrawlObserver($observer)
+            ->startCrawling($url);
     }
 }

@@ -108,8 +108,8 @@ class CrawlCommand extends ContainerAwareCommand
             "Now mapping: '{$website->getName()}' with a total of {$numberOfUnCrawledLinks} un-crawled links."
         );
 
-        $totalNewLinks = $this->mapper->mapWebsiteUrls($website);
+        $totalLinks = $this->mapper->mapWebsiteUrls($website);
 
-        $writer->success("Done, found {$totalNewLinks} new links in total.");
+        $writer->success("Done, found {$totalLinks} links in total.");
     }
 }

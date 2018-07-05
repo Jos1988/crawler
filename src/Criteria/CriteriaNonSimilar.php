@@ -2,8 +2,7 @@
 
 namespace App\Criteria;
 
-use App\Entity\CrawlLink;
-use Psr\Log\LoggerInterface;
+use Psr\Http\Message\UriInterface;
 
 /**
  * filters urls if they are too similar to each other.
@@ -11,7 +10,7 @@ use Psr\Log\LoggerInterface;
  * Class ValidUrlCriteria
  * @package App\CrawlLinkCriteria
  */
-class CriteriaNonSimilar implements Criteria
+class CriteriaNonSimilar extends LoggableCriteria
 {
     /** @var string */
     protected $lastUrl = '';
@@ -19,33 +18,18 @@ class CriteriaNonSimilar implements Criteria
     /** @var int */
     protected $similarUrls = 0;
 
-    /** @var LoggerInterface */
-    protected $logger;
-
     /**
-     * CriteriaNonSimilar constructor.
-     */
-    public function __construct(LoggerInterface $logger)
-    {
-        $this->logger = $logger;
-    }
-
-    /**
-     * @param array $crawlLinks
+     * @param UriInterface $uri
      *
-     * @return array
+     * @return bool
      */
-    public function meetCriteria(array $crawlLinks): array
+    public function meetCriteria(UriInterface $uri): bool
     {
-        $valid = [];
-        /** @var CrawlLink $crawlLink */
-        foreach ($crawlLinks as $crawlLink) {
-            if (false === $this->similarUrlCheck($crawlLink->getLink())) {
-                $valid[] = $crawlLink;
-            }
+        if (false === $this->similarUrlCheck($uri->getPath())) {
+            return true;
         }
 
-        return $valid;
+        return false;
     }
 
     /**
@@ -61,14 +45,14 @@ class CriteriaNonSimilar implements Criteria
 
         $this->lastUrl = $url;
 
-        if (2 >= $distance && $this->similarUrls >= 3) {
+        if (2 >= $distance && $this->similarUrls >= 10) {
+            $this->logger->alert(
+                sprintf("Url's to similar. current: %s, previous: %s  ", $url, $this->lastUrl)
+            );
+
             return true;
         } elseif (2 >= $distance) {
             $this->similarUrls++;
-            $this->logger->alert(
-                sprintf("Url's to similar. current: %S, previous: %S  ", $url, $this->lastUrl)
-            );
-
         } else {
             $this->similarUrls = 0;
         }

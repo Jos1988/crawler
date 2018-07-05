@@ -1,76 +1,53 @@
-<<<<<<< HEAD
 <?php
 
 namespace App\Criteria;
+
+use Psr\Http\Message\UriInterface;
+use Psr\Log\LoggerAwareInterface;
+use Psr\Log\LoggerInterface;
 
 /**
  * Class ValidUrlCriteria
  * @package App\CrawlLinkCriteria
  */
-class AndCriteria implements Criteria
+class AndCriteria extends LoggableCriteria
 {
     /**
-     * @var Criteria[]
+     * @var CriteriaInterface[]
      */
     private $criteria = [];
 
-    public function __construct(Criteria ...$criteria)
+    public function __construct(CriteriaInterface ...$criteria)
     {
         $this->criteria = $criteria;
     }
 
+    public function setLogger(LoggerInterface $logger)
+    {
+        parent::setLogger($logger);
+
+        foreach ($this->criteria as $criteria)
+        {
+            if ($criteria instanceof LoggerAwareInterface) {
+                $criteria->setLogger($this->logger);
+            }
+        }
+    }
+
     /**
-     * @param array $crawlLinks
      *
-     * @return array
+     * @param UriInterface $uri
+     *
+     * @return bool
      */
-    public function meetCriteria(array $crawlLinks): array
+    public function meetCriteria(UriInterface $uri): bool
     {
         foreach ($this->criteria as $criterion) {
-            $crawlLinks = $criterion->meetCriteria($crawlLinks);
+            if (false === $criterion->meetCriteria($uri)) {
+                return false;
+            }
         }
 
-        return $crawlLinks;
+        return true;
     }
-=======
-<?php
-/**
- * Created by PhpStorm.
- * User: Jos
- * Date: 13-5-2018
- * Time: 12:00
- */
-
-namespace App\Criteria;
-
-/**
- * Class ValidUrlCriteria
- * @package App\CrawlLinkCriteria
- */
-class AndCriteria implements Criteria
-{
-    /**
-     * @var Criteria[]
-     */
-    private $criteria = [];
-
-    public function __construct(Criteria ...$criteria)
-    {
-        $this->criteria = $criteria;
-    }
-
-    /**
-     * @param array $crawlLinks
-     *
-     * @return array
-     */
-    public function meetCriteria(array $crawlLinks): array
-    {
-        foreach ($this->criteria as $criterion) {
-            $crawlLinks = $criterion->meetCriteria($crawlLinks);
-        }
-
-        return $crawlLinks;
-    }
->>>>>>> parent of 00b8745... consolidate
 }
